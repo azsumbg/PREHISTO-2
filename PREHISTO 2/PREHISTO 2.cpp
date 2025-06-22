@@ -56,6 +56,8 @@ BOOL bRet{ 0 };
 
 POINT cur_pos{};
 
+UINT bTimer{ 0 };
+
 D2D1_RECT_F b1Rect{ 10.0f, 0, scr_height / 3 - 50.0f, 50.0f };
 D2D1_RECT_F b2Rect{ scr_height / 3, 0, scr_height * 2/ 3 - 50.0f, 50.0f };
 D2D1_RECT_F b3Rect{ scr_height * 2 / 3, 0, scr_height  - 50.0f, 50.0f };
@@ -79,7 +81,8 @@ dll::RANDIt RandGen;
 
 int level = 1;
 int score = 0;
-
+int mins = 0;
+int secs = 0;
 
 ///////////////////////////////////////////////////////////////
 
@@ -223,11 +226,15 @@ void InitGame()
 
     //////////////////////////////////////////
 
+    mins = 0;
+    secs = 0;
+    bTimer = 0;
 
 }
 
 void GameOver()
 {
+    KillTimer(bHwnd, bTimer);
     PlaySound(NULL, NULL, NULL);
 
 
@@ -235,6 +242,96 @@ void GameOver()
     bMsg.wParam = 0;
 }
 
+INT_PTR CALLBACK bDlgProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (ReceivedMsg)
+    {
+    case WM_INITDIALOG:
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)(bIcon));
+        return true;
+
+    case WM_CLOSE:
+        EndDialog(hwnd, IDCANCEL);
+        break;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDCANCEL:
+            EndDialog(hwnd, IDCANCEL);
+            break;
+
+        case IDOK:
+            if (GetDlgItemText(hwnd, IDC_NAME, current_player, 16) < 1)
+            {
+                if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+                MessageBox(bHwnd, L"Името си ли забрави ?", L"Забраватор", MB_OK | MB_APPLMODAL | MB_ICONQUESTION);
+                EndDialog(hwnd, IDCANCEL);
+                break;
+            }
+            EndDialog(hwnd, IDOK);
+        }
+        break;
+    }
+
+    return (INT_PTR)(FALSE);
+}
+LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (ReceivedMsg)
+    {
+    case WM_CREATE:
+        if (bIns)
+        {
+            SetTimer(hwnd, bTimer, 1000, NULL);
+            
+            bBar = CreateMenu();
+            bMain = CreateMenu();
+            bStore = CreateMenu();
+
+            AppendMenu(bBar, MF_POPUP, (UINT_PTR)(bMain), L"Основно меню");
+            AppendMenu(bBar, MF_POPUP, (UINT_PTR)(bStore), L"Меню за данни");
+
+            AppendMenu(bMain, MF_STRING, mNew, L"Нова игра");
+            AppendMenu(bMain, MF_STRING, mTurbo, L"Следващо ниво");
+            AppendMenu(bMain, MF_SEPARATOR, NULL, NULL);
+            AppendMenu(bMain, MF_STRING, mExit, L"Изход");
+
+            AppendMenu(bStore, MF_STRING, mSave, L"Запази игра");
+            AppendMenu(bStore, MF_STRING, mLoad, L"Зареди игра");
+            AppendMenu(bStore, MF_SEPARATOR, NULL, NULL);
+            AppendMenu(bStore, MF_STRING, mHoF, L"Зала на славата");
+
+            SetMenu(hwnd, bBar);
+            InitGame();
+
+        }
+        break;
+
+    case WM_CLOSE:
+        pause = true;
+        if (sound)mciSendString(L".\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+        if (MessageBox(hwnd, L"Ако излезеш, губиш прогреса по тази игра !\n\nНаистина ли излизаш ?", L"Изход !",
+            MB_APPLMODAL | MB_ICONQUESTION | MB_YESNO) == IDNO)
+        {
+            pause = false;
+            break;
+        }
+        GameOver();
+        break;
+
+
+
+
+
+
+
+
+    default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
+    }
+
+    return (LRESULT)(FALSE);
+}
 
 
 
