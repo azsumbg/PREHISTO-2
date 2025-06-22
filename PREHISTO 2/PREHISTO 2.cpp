@@ -45,6 +45,7 @@ WNDCLASS bWinClass{};
 HINSTANCE bIns{ nullptr };
 HICON bIcon{ nullptr };
 HCURSOR bCursor{ nullptr };
+HCURSOR outCursor{ nullptr };
 HMENU bBar{ nullptr };
 HMENU bMain{ nullptr };
 HMENU bStore{ nullptr };
@@ -320,9 +321,136 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
         GameOver();
         break;
 
+    case WM_PAINT:
+        PaintDC = BeginPaint(hwnd, &bPaint);
+        FillRect(PaintDC, &bPaint.rcPaint, CreateSolidBrush(RGB(10, 10, 10)));
+        EndPaint(hwnd, &bPaint);
+        break;
 
+    case WM_TIMER:
+        if (pause)break;
+        mins = secs / 60;
+        break;
 
+    case WM_SETCURSOR:
+        GetCursorPos(&cur_pos);
+        ScreenToClient(hwnd, &cur_pos);
+        if (LOWORD(lParam) == HTCLIENT)
+        {
+            if (!in_client)
+            {
+                in_client = true;
+                pause = false;
+            }
 
+            if (cur_pos.y <= 50)
+            {
+                if (cur_pos.x >= b1Rect.left && cur_pos.x <= b1Rect.right)
+                {
+                    if (!b1Hglt)
+                    {
+                        if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                        b1Hglt = true;
+                        b2Hglt = false;
+                        b3Hglt = false;
+                    }
+
+                }
+                if (cur_pos.x >= b2Rect.left && cur_pos.x <= b2Rect.right)
+                {
+                    if (!b2Hglt)
+                    {
+                        if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                        b1Hglt = false;
+                        b2Hglt = true;
+                        b3Hglt = false;
+                    }
+
+                }
+                if (cur_pos.x >= b3Rect.left && cur_pos.x <= b3Rect.right)
+                {
+                    if (!b3Hglt)
+                    {
+                        if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                        b1Hglt = false;
+                        b2Hglt = false;
+                        b3Hglt = true;
+                    }
+
+                }
+
+                SetCursor(outCursor); 
+                return true;
+            }
+            else
+            {
+                if (b1Hglt || b2Hglt || b3Hglt)
+                {
+                    if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                    b1Hglt = false;
+                    b2Hglt = false;
+                    b3Hglt = false;
+                }
+                SetCursor(bCursor);
+            }
+            
+            return true;
+        }
+        else
+        {
+            if (in_client)
+            {
+                in_client = false;
+                pause = true;
+            }
+
+            if (b1Hglt || b2Hglt || b3Hglt)
+            {
+                if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                b1Hglt = false;
+                b2Hglt = false;
+                b3Hglt = false;
+            }
+
+            SetCursor(LoadCursor(NULL, IDC_ARROW));
+           
+            return true;
+        }
+        break;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case mNew:
+            pause = true;
+            if (sound)mciSendString(L".\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+            if (MessageBox(hwnd, L"Ако рестартирш, губиш прогреса по тази игра !\n\nНаистина ли рестартираш ?", L"Рестарт !",
+                MB_APPLMODAL | MB_ICONQUESTION | MB_YESNO) == IDNO)
+            {
+                pause = false;
+                break;
+            }
+            InitGame();
+            break;
+
+        case mTurbo:
+            pause = true;
+            if (sound)mciSendString(L".\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+            if (MessageBox(hwnd, L"Наистина ли увеличаваш скоростта ?", L"Турбо !",
+                MB_APPLMODAL | MB_ICONQUESTION | MB_YESNO) == IDNO)
+            {
+                pause = false;
+                break;
+            }
+            ++level;
+            break;
+
+        case mExit:
+            SendMessage(hwnd, WM_CLOSE, NULL, NULL);
+            break;
+
+        }
+        break;
 
 
 
