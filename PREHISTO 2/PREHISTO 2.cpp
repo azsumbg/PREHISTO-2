@@ -915,10 +915,27 @@ void CreateResources()
             }
         }
 
+        hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&iWriteFactory));
+        if (hr != S_OK)
+        {
+            LogErr(L"Error creating D2D1 WriteFactory !");
+            ErrExit(eD2D);
+        }
 
-
-
-
+        if (iWriteFactory)
+        {
+            hr = iWriteFactory->CreateTextFormat(L"GABRIOLA", NULL, DWRITE_FONT_WEIGHT_EXTRA_BLACK, DWRITE_FONT_STYLE_NORMAL,
+                DWRITE_FONT_STRETCH_NORMAL, 14, L"", &nrmText);
+            hr = iWriteFactory->CreateTextFormat(L"GABRIOLA", NULL, DWRITE_FONT_WEIGHT_EXTRA_BLACK, DWRITE_FONT_STYLE_NORMAL,
+                DWRITE_FONT_STRETCH_NORMAL, 32, L"", &midText);
+            hr = iWriteFactory->CreateTextFormat(L"GABRIOLA", NULL, DWRITE_FONT_WEIGHT_EXTRA_BLACK, DWRITE_FONT_STYLE_NORMAL,
+                DWRITE_FONT_STRETCH_NORMAL, 64, L"", &bigText);
+            if (hr != S_OK)
+            {
+                LogErr(L"Error creating D2D1 WriteTextFormats !");
+                ErrExit(eD2D);
+            }
+        }
     }
 
 
