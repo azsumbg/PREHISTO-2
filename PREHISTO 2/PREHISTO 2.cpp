@@ -452,8 +452,34 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
         }
         break;
 
+    case WM_LBUTTONDOWN:
+        if (HIWORD(lParam) <= 50)
+        {
+            if (LOWORD(lParam) >= b1Rect.left && LOWORD(lParam) <= b1Rect.right)
+            {
+                if (sound)mciSendString(L".\\res\\snd\\select.wav", NULL, NULL, NULL);
+                if (DialogBox(bIns, MAKEINTRESOURCE(IDD_PLAYER), hwnd, &bDlgProc) == IDOK)name_set = true;
+                break;
+            }
+            if (LOWORD(lParam) >= b2Rect.left && LOWORD(lParam) <= b2Rect.right)
+            {
+                mciSendString(L".\\res\\snd\\select.wav", NULL, NULL, NULL);
+                if (sound)
+                {
+                    sound = false;
+                    PlaySound(NULL, NULL, NULL);
+                    break;
+                }
+                else
+                {
+                    sound = true;
+                    PlaySound(sound_file, NULL, SND_ASYNC | SND_LOOP);
+                    break;
+                }
+            }
+        }
 
-
+        break;
 
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
     }
@@ -461,7 +487,119 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
     return (LRESULT)(FALSE);
 }
 
+void CreateResources()
+{
+    int win_x = GetSystemMetrics(SM_CXSCREEN) / 2 - (int)(scr_width / 2.0f);
+    int win_y = 20;
 
+    if (GetSystemMetrics(SM_CXSCREEN) < win_x + (int)(scr_width) || GetSystemMetrics(SM_CYSCREEN) < win_y + (int)(scr_height))
+        ErrExit(eScreen);
+    bIcon = (HICON)(LoadImage(NULL, L".\\res\\main.ico", IMAGE_ICON, 255, 255, LR_LOADFROMFILE));
+    if (!bIcon)ErrExit(eIcon);
+    bCursor = LoadCursorFromFile(L".\\res\\main.ani");
+    outCursor = LoadCursorFromFile(L".\\res\\out.ani");
+    if (!bCursor || !outCursor)ErrExit(eCursor);
+
+    bWinClass.lpszClassName = bWinClassName;
+    bWinClass.hInstance = bIns;
+    bWinClass.lpfnWndProc = bWinProc;
+    bWinClass.hbrBackground = CreateSolidBrush(RGB(10, 10, 10));
+    bWinClass.hIcon = bIcon;
+    bWinClass.hCursor = bCursor;
+    bWinClass.style = CS_DROPSHADOW;
+
+    if (!RegisterClass(&bWinClass))ErrExit(eClass);
+
+    bHwnd = CreateWindow(bWinClassName, L"PREHISTO 2 !", WS_CAPTION | WS_SYSMENU, win_x, win_y, (int)(scr_width), (int)(scr_height),
+        NULL, NULL, bIns, NULL);
+    if (!bHwnd)ErrExit(eWindow);
+    else
+    {
+        ShowWindow(bHwnd, SW_SHOWDEFAULT);
+
+        HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &iFactory);
+        if (hr != S_OK)
+        {
+            LogErr(L"Error creating D2D1 Factory !");
+            ErrExit(eD2D);
+        }
+
+        if (iFactory)
+            hr = iFactory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(bHwnd,
+                D2D1::SizeU((UINT32)(scr_width), (UINT32)(scr_height))), &Draw);
+        if (hr != S_OK)
+        {
+            LogErr(L"Error creating D2D1 HwndRenderTarget !");
+            ErrExit(eD2D);
+        }
+
+        if (Draw)
+        {
+            D2D1_GRADIENT_STOP gStops[2]{};
+
+            ID2D1GradientStopCollection* gColl = nullptr;
+
+            gStops[0].position = 0;
+            gStops[0].color = D2D1::ColorF(D2D1::ColorF::Peru);
+            gStops[1].position = 1.0f;
+            gStops[1].color = D2D1::ColorF(D2D1::ColorF::DarkSalmon);
+
+            hr = Draw->CreateGradientStopCollection(gStops, 2, &gColl);
+            if (hr != S_OK)
+            {
+                LogErr(L"Error creating D2D1 GradientStopCollection !");
+                ErrExit(eD2D);
+            }
+
+            if (gColl)
+            {
+                hr = Draw->CreateRadialGradientBrush(D2D1::RadialGradientBrushProperties(D2D1::Point2F(b1Rect.left +
+                    (b1Rect.right - b1Rect.left) / 2, 25.0f), D2D1::Point2F(0, 0), (b1Rect.right - b1Rect.left) / 2, 25.0f),
+                    gColl, &b1BckgBrush);
+                hr = Draw->CreateRadialGradientBrush(D2D1::RadialGradientBrushProperties(D2D1::Point2F(b2Rect.left +
+                    (b2Rect.right - b2Rect.left) / 2, 25.0f), D2D1::Point2F(0, 0), (b2Rect.right - b2Rect.left) / 2, 25.0f),
+                    gColl, &b2BckgBrush);
+                hr = Draw->CreateRadialGradientBrush(D2D1::RadialGradientBrushProperties(D2D1::Point2F(b3Rect.left +
+                    (b3Rect.right - b3Rect.left) / 2, 25.0f), D2D1::Point2F(0, 0), (b3Rect.right - b3Rect.left) / 2, 25.0f),
+                    gColl, &b3BckgBrush);
+
+                if (hr != S_OK)
+                {
+                    LogErr(L"Error creating D2D1 ButBckgBrushes !");
+                    ErrExit(eD2D);
+                }
+                ClrMem(&gColl);
+            }
+
+            hr = Draw->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::DarkKhaki), &statBckgBrush);
+            hr = Draw->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Chartreuse), &txtBrush);
+            hr = Draw->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::MediumSpringGreen), &hgltBrush);
+            hr = Draw->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::MediumSlateBlue), &inactBrush);
+            
+            if (hr != S_OK)
+            {
+                LogErr(L"Error creating D2D1 TxtBrushes !");
+                ErrExit(eD2D);
+            }
+
+
+        }
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+}
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
@@ -469,7 +607,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     if (!bIns)ErrExit(eClass);
 
 
-
+    CreateResources();
 
     ReleaseResources();
     std::remove(tmp_file);
