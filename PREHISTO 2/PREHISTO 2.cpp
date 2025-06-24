@@ -582,7 +582,337 @@ void CreateResources()
                 ErrExit(eD2D);
             }
 
+            bmpField = Load(L".\\res\\img\\field\\field.png", Draw);
+            if (!bmpField)
+            {
+                LogErr(L"Error loading bmpField !");
+                ErrExit(eD2D);
+            }
+            bmpAxe = Load(L".\\res\\img\\field\\axe.png", Draw);
+            if (!bmpAxe)
+            {
+                LogErr(L"Error loading bmpAxe !");
+                ErrExit(eD2D);
+            }
+            bmpGold = Load(L".\\res\\img\\field\\gold.png", Draw);
+            if (!bmpGold)
+            {
+                LogErr(L"Error loading bmpGold !");
+                ErrExit(eD2D);
+            }
+            bmpPotion = Load(L".\\res\\img\\field\\potion.png", Draw);
+            if (!bmpPotion)
+            {
+                LogErr(L"Error loading bmpPotion !");
+                ErrExit(eD2D);
+            }
+            bmpRIP = Load(L".\\res\\img\\field\\rip.png", Draw);
+            if (!bmpRIP)
+            {
+                LogErr(L"Error loading bmpRIP !");
+                ErrExit(eD2D);
+            }
+            bmpTree = Load(L".\\res\\img\\field\\tree.png", Draw);
+            if (!bmpTree)
+            {
+                LogErr(L"Error loading bmpTree !");
+                ErrExit(eD2D);
+            }
+            bmpPlatform1 = Load(L".\\res\\img\\field\\platform1.png", Draw);
+            if (!bmpPlatform1)
+            {
+                LogErr(L"Error loading bmpPlatform1 !");
+                ErrExit(eD2D);
+            }
+            bmpPlatform2 = Load(L".\\res\\img\\field\\platform2.png", Draw);
+            if (!bmpPlatform2)
+            {
+                LogErr(L"Error loading bmpPlatform2 !");
+                ErrExit(eD2D);
+            }
+            bmpPlatform3 = Load(L".\\res\\img\\field\\platform3.png", Draw);
+            if (!bmpPlatform3)
+            {
+                LogErr(L"Error loading bmpPlatform3 !");
+                ErrExit(eD2D);
+            }
 
+            for (int i = 0; i < 16; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\field\\firebal\\" };
+                wchar_t add[5] = L"\0";
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpFireball[i] = Load(name, Draw);
+                if (!bmpFireball[i])
+                {
+                    LogErr(L"Error loading bmpFireball !");
+                    ErrExit(eD2D);
+                }
+            }
+            for (int i = 0; i < 32; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\field\\intro\\0" };
+                wchar_t add[5] = L"\0";
+
+                if (i < 10)wcscat_s(name, L"0");
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpIntro[i] = Load(name, Draw);
+                if (!bmpIntro[i])
+                {
+                    LogErr(L"Error loading bmpIntro !");
+                    ErrExit(eD2D);
+                }
+            }
+
+            for (int i = 0; i < 4; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\hero\\l\\" };
+                wchar_t add[5] = L"\0";
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpHeroL[i] = Load(name, Draw);
+                if (!bmpHeroL[i])
+                {
+                    LogErr(L"Error loading bmpHeroL !");
+                    ErrExit(eD2D);
+                }
+            }
+            for (int i = 0; i < 4; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\hero\\r\\" };
+                wchar_t add[5] = L"\0";
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpHeroR[i] = Load(name, Draw);
+                if (!bmpHeroR[i])
+                {
+                    LogErr(L"Error loading bmpHeroR !");
+                    ErrExit(eD2D);
+                }
+            }
+
+            for (int i = 0; i < 11; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil1\\l\\" };
+                wchar_t add[5] = L"\0";
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil1L[i] = Load(name, Draw);
+                if (!bmpEvil1L[i])
+                {
+                    LogErr(L"Error loading bmpEvil1L !");
+                    ErrExit(eD2D);
+                }
+            }
+            for (int i = 0; i < 11; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil1\\r\\" };
+                wchar_t add[5] = L"\0";
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil1R[i] = Load(name, Draw);
+                if (!bmpEvil1R[i])
+                {
+                    LogErr(L"Error loading bmpEvil1R !");
+                    ErrExit(eD2D);
+                }
+            }
+
+            for (int i = 0; i < 28; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil2\\l\\0" };
+                wchar_t add[5] = L"\0";
+                
+                if (i < 10)wcscat_s(name, L"0");
+                
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil2L[i] = Load(name, Draw);
+                if (!bmpEvil2L[i])
+                {
+                    LogErr(L"Error loading bmpEvil2L !");
+                    ErrExit(eD2D);
+                }
+            }
+            for (int i = 0; i < 28; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil2\\r\\0" };
+                wchar_t add[5] = L"\0";
+
+                if (i < 10)wcscat_s(name, L"0");
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil2R[i] = Load(name, Draw);
+                if (!bmpEvil2R[i])
+                {
+                    LogErr(L"Error loading bmpEvil2R !");
+                    ErrExit(eD2D);
+                }
+            }
+
+            for (int i = 0; i < 20; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil3\\l\\0" };
+                wchar_t add[5] = L"\0";
+
+                if (i < 10)wcscat_s(name, L"0");
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil3L[i] = Load(name, Draw);
+                if (!bmpEvil3L[i])
+                {
+                    LogErr(L"Error loading bmpEvil3L !");
+                    ErrExit(eD2D);
+                }
+            }
+            for (int i = 0; i < 20; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil3\\r\\0" };
+                wchar_t add[5] = L"\0";
+
+                if (i < 10)wcscat_s(name, L"0");
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil3R[i] = Load(name, Draw);
+                if (!bmpEvil3R[i])
+                {
+                    LogErr(L"Error loading bmpEvil3R !");
+                    ErrExit(eD2D);
+                }
+            }
+
+            for (int i = 0; i < 5; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil4\\l\\0" };
+                wchar_t add[5] = L"\0";
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil4L[i] = Load(name, Draw);
+                if (!bmpEvil4L[i])
+                {
+                    LogErr(L"Error loading bmpEvil4L !");
+                    ErrExit(eD2D);
+                }
+            }
+            for (int i = 0; i < 5; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil4\\r\\0" };
+                wchar_t add[5] = L"\0";
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil4R[i] = Load(name, Draw);
+                if (!bmpEvil4R[i])
+                {
+                    LogErr(L"Error loading bmpEvil4R !");
+                    ErrExit(eD2D);
+                }
+            }
+
+            for (int i = 0; i < 16; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil5\\l\\0" };
+                wchar_t add[5] = L"\0";
+
+                if (i < 10)wcscat_s(name, L"0");
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil5L[i] = Load(name, Draw);
+                if (!bmpEvil5L[i])
+                {
+                    LogErr(L"Error loading bmpEvil5L !");
+                    ErrExit(eD2D);
+                }
+            }
+            for (int i = 0; i < 16; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil5\\r\\0" };
+                wchar_t add[5] = L"\0";
+
+                if (i < 10)wcscat_s(name, L"0");
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil5R[i] = Load(name, Draw);
+                if (!bmpEvil5R[i])
+                {
+                    LogErr(L"Error loading bmpEvil5R !");
+                    ErrExit(eD2D);
+                }
+            }
+
+            for (int i = 0; i < 24; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil6\\l\\0" };
+                wchar_t add[5] = L"\0";
+
+                if (i < 10)wcscat_s(name, L"0");
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil6L[i] = Load(name, Draw);
+                if (!bmpEvil6L[i])
+                {
+                    LogErr(L"Error loading bmpEvil6L !");
+                    ErrExit(eD2D);
+                }
+            }
+            for (int i = 0; i < 24; ++i)
+            {
+                wchar_t name[150]{ L".\\res\\img\\evil6\\r\\0" };
+                wchar_t add[5] = L"\0";
+
+                if (i < 10)wcscat_s(name, L"0");
+
+                wsprintf(add, L"%d", i);
+                wcscat_s(name, add);
+                wcscat_s(name, L".png");
+
+                bmpEvil6R[i] = Load(name, Draw);
+                if (!bmpEvil6R[i])
+                {
+                    LogErr(L"Error loading bmpEvil6R !");
+                    ErrExit(eD2D);
+                }
+            }
         }
 
 
