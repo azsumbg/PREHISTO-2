@@ -137,6 +137,14 @@ ID2D1Bitmap* bmpEvil5R[16]{ nullptr };
 ID2D1Bitmap* bmpEvil6L[24]{ nullptr };
 ID2D1Bitmap* bmpEvil6R[24]{ nullptr };
 
+///////////////////////////////////////////////////////////////
+
+std::vector<dll::Asset>vFields;
+
+
+
+
+
 //////////////////////////////////////////////////////////////
 
 template<typename T> concept CanBeReleased = requires(T check)
@@ -225,11 +233,19 @@ void InitGame()
     score = 0;
     level = 1;
 
+    
     //////////////////////////////////////////
 
     mins = 0;
     secs = 0;
     bTimer = 0;
+
+    if (!vFields.empty())
+        for (int i = 0; i < vFields.size(); ++i)ClrMem(&vFields[i]);
+    vFields.clear();
+    for (float sx = -scr_width; sx < 2 * scr_width; sx += scr_width) vFields.push_back(dll::FieldFactory(assets::field, sx, 50.0f));
+
+
 
 }
 
@@ -639,7 +655,7 @@ void CreateResources()
 
             for (int i = 0; i < 16; ++i)
             {
-                wchar_t name[150]{ L".\\res\\img\\field\\firebal\\" };
+                wchar_t name[150]{ L".\\res\\img\\field\\fireball\\" };
                 wchar_t add[5] = L"\0";
                 wsprintf(add, L"%d", i);
                 wcscat_s(name, add);
@@ -938,13 +954,61 @@ void CreateResources()
         }
     }
 
+    int intro_frame = 0;
+    int frame_delay = 2;
+    bool up_ok = false;
+    bool down_ok = false;
 
+    wchar_t up_txt[13]{ L"PREHISTO 2 !" };
+    int up_let_count = 0;
+    float up_txt_y_pos{ -20.0f };
 
+    wchar_t down_txt[14]{ L"dev. Daniel !" };
+    int down_let_count = 0;
+    float down_txt_y_pos{ scr_height };
 
+    if (Draw && bigText && txtBrush)
+    {
+        while (!up_ok || !down_ok)
+        {
+            Draw->BeginDraw();
+            Draw->DrawBitmap(bmpIntro[intro_frame], D2D1::RectF(0, 0, scr_width, scr_height));
+            --frame_delay;
+            {
+                if (frame_delay <= 0)
+                {
+                    frame_delay = 2;
+                    ++intro_frame;
+                    if (intro_frame >= 32)intro_frame = 0;
+                }
+            }
 
+            Draw->DrawTextW(up_txt, up_let_count, bigText, D2D1::RectF(150.0f, up_txt_y_pos, 
+                scr_width, up_txt_y_pos + 50.0f), txtBrush);
+            ++up_txt_y_pos;
+            if (up_let_count + 1 < 13)++up_let_count;
+            if (up_txt_y_pos >= scr_height / 2 - 100.0f && !up_ok)
+            {
+                up_ok = true;
+                mciSendString(L"play .\\res\\snd\\boom.wav", NULL, NULL, NULL);
+            }
 
+            Draw->DrawTextW(down_txt, down_let_count, bigText, D2D1::RectF(150.0f, down_txt_y_pos, scr_width, down_txt_y_pos
+                + 50.0f), txtBrush);
+            --down_txt_y_pos;
+            if (down_let_count + 1 < 14)++down_let_count;
+            if (down_txt_y_pos <= scr_height / 2 + 200.0f && !down_ok)
+            {
+                down_ok = true;
+                mciSendString(L"play .\\res\\snd\\boom.wav", NULL, NULL, NULL);
+            }
+            Draw->EndDraw();
 
+            Sleep(10);
+        }
 
+        PlaySound(L".\\res\\snd\\intro.wav", NULL, SND_SYNC);
+    }
 
 }
 
@@ -955,6 +1019,108 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
     CreateResources();
+
+    while (bMsg.message != WM_QUIT)
+    {
+        if ((bRet = PeekMessage(&bMsg, bHwnd, NULL, NULL, PM_REMOVE)) != 0)
+        {
+            if (bRet == -1)ErrExit(eMsg);
+
+            TranslateMessage(&bMsg);
+            DispatchMessageW(&bMsg);
+        }
+
+        if (pause)
+        {
+            if (show_help)continue;
+
+            static int intro_frame = 0;
+            static int frame_delay = 2;
+
+            if (Draw && bigText && txtBrush)
+            {
+                Draw->BeginDraw();
+                Draw->DrawBitmap(bmpIntro[intro_frame], D2D1::RectF(0, 0, scr_width, scr_height));
+                --frame_delay;
+                {
+                    if (frame_delay <= 0)
+                    {
+                        frame_delay = 2;
+                        ++intro_frame;
+                        if (intro_frame >= 32)intro_frame = 0;
+                    }
+                }
+                Draw->DrawTextW(L"ПАУЗА", 6, bigText, D2D1::RectF(scr_width / 2 - 100.0f, scr_height / 2 - 50.0f,
+                    scr_width, scr_height), txtBrush);
+                Draw->EndDraw();
+                continue;
+            }
+        }
+
+        ///////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // DRAW THINGS **********************************************
+
+        Draw->BeginDraw();
+
+        if (b1BckgBrush && b2BckgBrush && b3BckgBrush && statBckgBrush && txtBrush && hgltBrush && inactBrush && nrmText)
+        {
+            Draw->FillRectangle(D2D1::RectF(0, 0, scr_width, 50.0f), statBckgBrush);
+            Draw->FillRoundedRectangle(D2D1::RoundedRect(b1Rect, (b1Rect.right - b1Rect.left) / 2, 25.0f), b1BckgBrush);
+            Draw->FillRoundedRectangle(D2D1::RoundedRect(b2Rect, (b2Rect.right - b2Rect.left) / 2, 25.0f), b2BckgBrush);
+            Draw->FillRoundedRectangle(D2D1::RoundedRect(b3Rect, (b3Rect.right - b3Rect.left) / 2, 25.0f), b3BckgBrush);
+
+            if (name_set)Draw->DrawTextW(L"ИМЕ НА ИГРАЧ", 13, nrmText, b1TxtRect, inactBrush);
+            else
+            {
+                if (!b1Hglt)Draw->DrawTextW(L"ИМЕ НА ИГРАЧ", 13, nrmText, b1TxtRect, txtBrush);
+                else Draw->DrawTextW(L"ИМЕ НА ИГРАЧ", 13, nrmText, b1TxtRect, hgltBrush);
+            }
+            if (!b2Hglt)Draw->DrawTextW(L"ЗВУЦИ ON / OFF", 15, nrmText, b2TxtRect, txtBrush);
+            else Draw->DrawTextW(L"ЗВУЦИ ON / OFF", 15, nrmText, b2TxtRect, hgltBrush);
+            if (!b3Hglt)Draw->DrawTextW(L"ПОМОЩ ЗА ИГРАТА", 16, nrmText, b3TxtRect, txtBrush);
+            else Draw->DrawTextW(L"ПОМОЩ ЗА ИГРАТА", 16, nrmText, b3TxtRect, hgltBrush);
+        }
+
+        if (!vFields.empty())
+        {
+            for (int i = 0; i < vFields.size(); ++i)
+            {
+                if ((vFields[i]->start.x >= 0 && vFields[i]->start.x <= scr_width) ||
+                    (vFields[i]->end.x >= 0 && vFields[i]->end.x <= scr_width))
+                    Draw->DrawBitmap(bmpField, D2D1::RectF(vFields[i]->start.x, vFields[i]->start.y,
+                        vFields[i]->end.x, vFields[i]->end.y));
+            }
+        }
+
+        //////////////////////////////////
+
+
+
+
+
+
+
+
+
+        //////////////////////////////////////////////////////////////
+
+        Draw->EndDraw();
+    }
 
     ReleaseResources();
     std::remove(tmp_file);
