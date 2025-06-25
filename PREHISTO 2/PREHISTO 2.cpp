@@ -327,7 +327,7 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
 
     case WM_CLOSE:
         pause = true;
-        if (sound)mciSendString(L".\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+        if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
         if (MessageBox(hwnd, L"Ако излезеш, губиш прогреса по тази игра !\n\nНаистина ли излизаш ?", L"Изход !",
             MB_APPLMODAL | MB_ICONQUESTION | MB_YESNO) == IDNO)
         {
@@ -365,7 +365,7 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
                 {
                     if (!b1Hglt)
                     {
-                        if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                        if (sound)mciSendString(L"play .\\res\\snd\\click.wav", NULL, NULL, NULL);
                         b1Hglt = true;
                         b2Hglt = false;
                         b3Hglt = false;
@@ -376,7 +376,7 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
                 {
                     if (!b2Hglt)
                     {
-                        if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                        if (sound)mciSendString(L"play .\\res\\snd\\click.wav", NULL, NULL, NULL);
                         b1Hglt = false;
                         b2Hglt = true;
                         b3Hglt = false;
@@ -387,12 +387,11 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
                 {
                     if (!b3Hglt)
                     {
-                        if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                        if (sound)mciSendString(L"play .\\res\\snd\\click.wav", NULL, NULL, NULL);
                         b1Hglt = false;
                         b2Hglt = false;
                         b3Hglt = true;
                     }
-
                 }
 
                 SetCursor(outCursor); 
@@ -402,7 +401,7 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
             {
                 if (b1Hglt || b2Hglt || b3Hglt)
                 {
-                    if (sound)mciSendString(L".\\res\\snd\\click.wav", NULL, NULL, NULL);
+                    if (sound)mciSendString(L"play .\\res\\snd\\click.wav", NULL, NULL, NULL);
                     b1Hglt = false;
                     b2Hglt = false;
                     b3Hglt = false;
@@ -439,7 +438,7 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
         {
         case mNew:
             pause = true;
-            if (sound)mciSendString(L".\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+            if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
             if (MessageBox(hwnd, L"Ако рестартирш, губиш прогреса по тази игра !\n\nНаистина ли рестартираш ?", L"Рестарт !",
                 MB_APPLMODAL | MB_ICONQUESTION | MB_YESNO) == IDNO)
             {
@@ -451,7 +450,7 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
 
         case mTurbo:
             pause = true;
-            if (sound)mciSendString(L".\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+            if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
             if (MessageBox(hwnd, L"Наистина ли увеличаваш скоростта ?", L"Турбо !",
                 MB_APPLMODAL | MB_ICONQUESTION | MB_YESNO) == IDNO)
             {
@@ -473,13 +472,18 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
         {
             if (LOWORD(lParam) >= b1Rect.left && LOWORD(lParam) <= b1Rect.right)
             {
-                if (sound)mciSendString(L".\\res\\snd\\select.wav", NULL, NULL, NULL);
+                if (name_set)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    break;
+                }
+                if (sound)mciSendString(L"play .\\res\\snd\\select.wav", NULL, NULL, NULL);
                 if (DialogBox(bIns, MAKEINTRESOURCE(IDD_PLAYER), hwnd, &bDlgProc) == IDOK)name_set = true;
                 break;
             }
             if (LOWORD(lParam) >= b2Rect.left && LOWORD(lParam) <= b2Rect.right)
             {
-                mciSendString(L".\\res\\snd\\select.wav", NULL, NULL, NULL);
+                mciSendString(L"play .\\res\\snd\\select.wav", NULL, NULL, NULL);
                 if (sound)
                 {
                     sound = false;
@@ -969,38 +973,45 @@ void CreateResources()
 
     if (Draw && bigText && txtBrush)
     {
+        mciSendString(L"play .\\res\\snd\\entry.wav", NULL, NULL, NULL);
+
         while (!up_ok || !down_ok)
         {
             Draw->BeginDraw();
+
             Draw->DrawBitmap(bmpIntro[intro_frame], D2D1::RectF(0, 0, scr_width, scr_height));
             --frame_delay;
-            {
-                if (frame_delay <= 0)
+            if (frame_delay <= 0)
                 {
                     frame_delay = 2;
                     ++intro_frame;
                     if (intro_frame >= 32)intro_frame = 0;
                 }
-            }
-
-            Draw->DrawTextW(up_txt, up_let_count, bigText, D2D1::RectF(150.0f, up_txt_y_pos, 
+            
+            Draw->DrawTextW(up_txt, up_let_count, bigText, D2D1::RectF(150.0f, up_txt_y_pos,
                 scr_width, up_txt_y_pos + 50.0f), txtBrush);
-            ++up_txt_y_pos;
-            if (up_let_count + 1 < 13)++up_let_count;
-            if (up_txt_y_pos >= scr_height / 2 - 100.0f && !up_ok)
+            if (!up_ok)
             {
-                up_ok = true;
-                mciSendString(L"play .\\res\\snd\\boom.wav", NULL, NULL, NULL);
+                ++up_txt_y_pos;
+                if (up_let_count + 1 < 13)++up_let_count;
+                if (up_txt_y_pos >= scr_height / 2 - 100.0f && !up_ok)
+                {
+                    up_ok = true;
+                    mciSendString(L"play .\\res\\snd\\boom.wav", NULL, NULL, NULL);
+                    mciSendString(L"play .\\res\\snd\\entry.wav", NULL, NULL, NULL);
+                }
             }
-
-            Draw->DrawTextW(down_txt, down_let_count, bigText, D2D1::RectF(150.0f, down_txt_y_pos, scr_width, down_txt_y_pos
-                + 50.0f), txtBrush);
-            --down_txt_y_pos;
-            if (down_let_count + 1 < 14)++down_let_count;
-            if (down_txt_y_pos <= scr_height / 2 + 200.0f && !down_ok)
+            if (up_ok)
             {
-                down_ok = true;
-                mciSendString(L"play .\\res\\snd\\boom.wav", NULL, NULL, NULL);
+                Draw->DrawTextW(down_txt, down_let_count, bigText, D2D1::RectF(150.0f, down_txt_y_pos, scr_width, down_txt_y_pos
+                    + 50.0f), txtBrush);
+                --down_txt_y_pos;
+                if (down_let_count + 1 < 14)++down_let_count;
+                if (down_txt_y_pos <= scr_height / 2 + 200.0f && !down_ok)
+                {
+                    down_ok = true;
+                    mciSendString(L"play .\\res\\snd\\boom.wav", NULL, NULL, NULL);
+                }
             }
             Draw->EndDraw();
 
