@@ -247,6 +247,7 @@ void InitGame()
 
 
 
+   
 }
 
 void GameOver()
@@ -1003,11 +1004,11 @@ void CreateResources()
             }
             if (up_ok)
             {
-                Draw->DrawTextW(down_txt, down_let_count, bigText, D2D1::RectF(150.0f, down_txt_y_pos, scr_width, down_txt_y_pos
+                Draw->DrawTextW(down_txt, down_let_count, bigText, D2D1::RectF(300.0f, down_txt_y_pos, scr_width, down_txt_y_pos
                     + 50.0f), txtBrush);
                 --down_txt_y_pos;
                 if (down_let_count + 1 < 14)++down_let_count;
-                if (down_txt_y_pos <= scr_height / 2 + 200.0f && !down_ok)
+                if (down_txt_y_pos <= scr_height / 2 + 100.0f && !down_ok)
                 {
                     down_ok = true;
                     mciSendString(L"play .\\res\\snd\\boom.wav", NULL, NULL, NULL);

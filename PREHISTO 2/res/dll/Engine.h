@@ -282,6 +282,8 @@ namespace dll
 		{
 			while (!is_ok)
 			{
+				is_ok = true;
+
 				for (size_t i = 0; i < objects.size() - 1; ++i)
 				{
 					if (objects[i] > objects[i + 1])
@@ -299,6 +301,8 @@ namespace dll
 		{
 			while (!is_ok)
 			{
+				is_ok = true;
+
 				for (size_t i = 0; i < objects.size() - 1; ++i)
 				{
 					if (objects[i] < objects[i + 1])
