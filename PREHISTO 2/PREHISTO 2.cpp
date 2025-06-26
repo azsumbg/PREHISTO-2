@@ -140,8 +140,9 @@ ID2D1Bitmap* bmpEvil6R[24]{ nullptr };
 ///////////////////////////////////////////////////////////////
 
 std::vector<dll::Asset>vFields;
+dirs assets_dir = dirs::stop;
 
-
+dll::Creature Hero{ nullptr };
 
 
 
@@ -245,7 +246,8 @@ void InitGame()
     vFields.clear();
     for (float sx = -scr_width; sx < 2 * scr_width; sx += scr_width) vFields.push_back(dll::FieldFactory(assets::field, sx, 50.0f));
 
-
+    if (Hero)ClrMem(&Hero);
+    Hero = dll::CreatureFactory(types::hero, 100.0f, ground);
 
    
 }
@@ -1071,9 +1073,58 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
         ///////////////////////////////////////////////////////////
 
+        if (Hero)
+        {
+            switch (Hero->dir)
+            {
+            case dirs::right:
+                assets_dir = dirs::left;
+                break;
 
+            case dirs::up_right:
+                assets_dir = dirs::left;
+                break;
 
+            case dirs::down_right:
+                assets_dir = dirs::left;
+                break;
 
+            case dirs::left:
+                assets_dir = dirs::right;
+                break;
+
+            case dirs::up_left:
+                assets_dir = dirs::right;
+                break;
+
+            case dirs::down_left:
+                assets_dir = dirs::right;
+                break;
+
+            case dirs::stop:
+                assets_dir = dirs::stop;
+                break;
+            }
+        }
+
+        if (!vFields.empty() && assets_dir != dirs::stop)
+        {
+            for (std::vector<dll::Asset>::iterator field = vFields.begin(); field < vFields.end(); ++field)
+            {
+                if (!(*field)->Move((float)(level), assets_dir))
+                {
+                    (*field)->Release();
+                    vFields.erase(field);
+                    break;
+                }
+            }
+            if (vFields.size() < 3)
+            {
+                if (assets_dir == dirs::right)vFields.insert(vFields.begin(), dll::FieldFactory(assets::field,
+                    vFields.front()->start.x - scr_width, 50.0f));
+                else vFields.push_back(dll::FieldFactory(assets::field, vFields.back()->end.x, 50.0f));
+            }
+        }
 
 
 
@@ -1121,7 +1172,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
         //////////////////////////////////
 
-
+        if (Hero)
+        {
+            if (Hero->dir == dirs::right || Hero->dir == dirs::up_right || Hero->dir == dirs::down_right
+                || Hero->dir == dirs::stop)Draw->DrawBitmap(bmpHeroR[Hero->GetFrame()], D2D1::RectF(Hero->start.x,
+                    Hero->start.y, Hero->end.x, Hero->end.y));
+            else Draw->DrawBitmap(bmpHeroL[Hero->GetFrame()], D2D1::RectF(Hero->start.x,
+                Hero->start.y, Hero->end.x, Hero->end.y));
+        }
 
 
 
