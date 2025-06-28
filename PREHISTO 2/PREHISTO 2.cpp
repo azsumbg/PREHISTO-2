@@ -140,10 +140,10 @@ ID2D1Bitmap* bmpEvil6R[24]{ nullptr };
 ///////////////////////////////////////////////////////////////
 
 std::vector<dll::Asset>vFields;
+std::vector<dll::Asset>vPlatforms;
 dirs assets_dir = dirs::stop;
 
 dll::Creature Hero{ nullptr };
-
 
 
 //////////////////////////////////////////////////////////////
@@ -245,11 +245,15 @@ void InitGame()
         for (int i = 0; i < vFields.size(); ++i)ClrMem(&vFields[i]);
     vFields.clear();
     for (float sx = -scr_width; sx < 2 * scr_width; sx += scr_width) vFields.push_back(dll::FieldFactory(assets::field, sx, 50.0f));
+    
+    if (!vPlatforms.empty())
+        for (int i = 0; i < vPlatforms.size(); ++i)ClrMem(&vPlatforms[i]);
+    vPlatforms.clear();
 
     if (Hero)ClrMem(&Hero);
     Hero = dll::CreatureFactory(types::hero, 100.0f, ground);
 
-   
+    
 }
 
 void GameOver()
@@ -503,6 +507,34 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
         }
 
         break;
+
+    case WM_KEYDOWN:
+        if (!Hero)break;
+        if (Hero->jump)
+        {
+            if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+            break;
+        }
+        switch(LOWORD(wParam))
+        {
+        case VK_LEFT:
+            Hero->dir = dirs::left;
+            break;
+
+        case VK_RIGHT:
+            Hero->dir = dirs::right;
+            break;
+
+        case VK_UP:
+            Hero->jump = true;
+            break;
+
+        case VK_DOWN:
+            Hero->dir = dirs::stop;
+            break;
+        }
+        break;
+
 
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
     }
@@ -962,7 +994,7 @@ void CreateResources()
     }
 
     int intro_frame = 0;
-    int frame_delay = 2;
+    int frame_delay = 4;
     bool up_ok = false;
     bool down_ok = false;
 
@@ -986,7 +1018,7 @@ void CreateResources()
             --frame_delay;
             if (frame_delay <= 0)
                 {
-                    frame_delay = 2;
+                    frame_delay = 4;
                     ++intro_frame;
                     if (intro_frame >= 32)intro_frame = 0;
                 }
@@ -1049,21 +1081,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             if (show_help)continue;
 
             static int intro_frame = 0;
-            static int frame_delay = 2;
+            static int frame_delay = 4;
 
             if (Draw && bigText && txtBrush)
             {
                 Draw->BeginDraw();
                 Draw->DrawBitmap(bmpIntro[intro_frame], D2D1::RectF(0, 0, scr_width, scr_height));
                 --frame_delay;
-                {
-                    if (frame_delay <= 0)
+                if (frame_delay <= 0)
                     {
-                        frame_delay = 2;
+                        frame_delay = 4;
                         ++intro_frame;
                         if (intro_frame >= 32)intro_frame = 0;
                     }
-                }
                 Draw->DrawTextW(L"ПАУЗА", 6, bigText, D2D1::RectF(scr_width / 2 - 100.0f, scr_height / 2 - 50.0f,
                     scr_width, scr_height), txtBrush);
                 Draw->EndDraw();
@@ -1105,6 +1135,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 assets_dir = dirs::stop;
                 break;
             }
+
+            if (Hero->dir != dirs::stop)Hero->Move((float)(level));
         }
 
         if (!vFields.empty() && assets_dir != dirs::stop)
@@ -1126,12 +1158,76 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
         }
 
+        if (vPlatforms.size() < 3 && RandGen(0, 500) == 66)
+            vPlatforms.push_back(dll::FieldFactory(static_cast<assets>(RandGen(0, 2)), scr_width + (float)(RandGen(160, 250)),
+                ground - (float)(RandGen(50, 100))));
+        
+        if (!vPlatforms.empty() && assets_dir != dirs::stop)
+        {
+            for (std::vector<dll::Asset>::iterator plat = vPlatforms.begin(); plat < vPlatforms.end(); ++plat)
+            {
+                if (!(*plat)->Move((float)(level), assets_dir))
+                {
+                    (*plat)->Release();
+                    vPlatforms.erase(plat);
+                    break;
+                }
+            }
+        }
 
+        if (Hero)
+        {
+            if (!Hero->jump)
+            {
+                Hero->state = states::fall;
 
+                if (Hero->start.y >= ground)
+                {
+                    Hero->state = states::move;
+                    if (Hero->start.y > ground)
+                    {
+                        Hero->start.y = ground;
+                        Hero->SetEdges();
+                    }
+                }
+                else if (!vPlatforms.empty())
+                {
+                    for (std::vector<dll::Asset>::iterator pl = vPlatforms.begin(); pl < vPlatforms.end(); ++pl)
+                    {
+                        if ((abs(Hero->center.x - (*pl)->center.x) <= Hero->x_radius + (*pl)->x_radius)
+                            && (abs(Hero->center.y - (*pl)->center.y) <= Hero->y_radius + (*pl)->y_radius))
+                        {
+                            Hero->state = states::move;
+                            Hero->start.y = (*pl)->start.y - Hero->GetHeight();
+                            Hero->SetEdges();
+                            break;
+                        }
+                    }
+                }
 
-
-
-
+                if (Hero->state == states::fall)
+                {
+                    Hero->start.y += (float)(level);
+                    Hero->SetEdges();
+                }
+            }
+            else if (!vPlatforms.empty())
+            {
+                for (std::vector<dll::Asset>::iterator pl = vPlatforms.begin(); pl < vPlatforms.end(); ++pl)
+                {
+                    if ((abs(Hero->center.x - (*pl)->center.x) <= Hero->x_radius + (*pl)->x_radius)
+                        && (abs(Hero->center.y - (*pl)->center.y) <= Hero->y_radius + (*pl)->y_radius))
+                    {
+                        Hero->state = states::move;
+                        Hero->start.y = (*pl)->start.y - Hero->GetHeight();
+                        Hero->SetEdges();
+                        Hero->jump = false;
+                        break;
+                    }
+                }
+            }
+        }
+        
 
 
 
@@ -1172,6 +1268,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
         //////////////////////////////////
 
+        if (!vPlatforms.empty())
+        {
+            for (std::vector<dll::Asset>::iterator plat = vPlatforms.begin(); plat < vPlatforms.end(); ++plat)
+            {
+                switch ((*plat)->type)
+                {
+                case assets::platform1:
+                    Draw->DrawBitmap(bmpPlatform1, D2D1::RectF((*plat)->start.x, (*plat)->start.y, (*plat)->end.x, (*plat)->end.y));
+                    break;
+
+                case assets::platform2:
+                    Draw->DrawBitmap(bmpPlatform2, D2D1::RectF((*plat)->start.x, (*plat)->start.y, (*plat)->end.x, (*plat)->end.y));
+                    break;
+
+                case assets::platform3:
+                    Draw->DrawBitmap(bmpPlatform3, D2D1::RectF((*plat)->start.x, (*plat)->start.y, (*plat)->end.x, (*plat)->end.y));
+                    break;
+
+                }
+            }
+        }
+        
         if (Hero)
         {
             if (Hero->dir == dirs::right || Hero->dir == dirs::up_right || Hero->dir == dirs::down_right
@@ -1181,7 +1299,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 Hero->start.y, Hero->end.x, Hero->end.y));
         }
 
-
+        
 
 
 
