@@ -144,7 +144,7 @@ std::vector<dll::Asset>vPlatforms;
 dirs assets_dir = dirs::stop;
 
 dll::Creature Hero{ nullptr };
-
+std::vector<dll::Creature>vEvils;
 
 //////////////////////////////////////////////////////////////
 
@@ -233,7 +233,6 @@ void InitGame()
     name_set = false;
     score = 0;
     level = 1;
-
     
     //////////////////////////////////////////
 
@@ -250,10 +249,12 @@ void InitGame()
         for (int i = 0; i < vPlatforms.size(); ++i)ClrMem(&vPlatforms[i]);
     vPlatforms.clear();
 
+    if (!vEvils.empty())
+        for (int i = 0; i < vEvils.size(); ++i)ClrMem(&vEvils[i]);
+    vEvils.clear();
+
     if (Hero)ClrMem(&Hero);
     Hero = dll::CreatureFactory(types::hero, 100.0f, ground);
-
-    
 }
 
 void GameOver()
@@ -1228,7 +1229,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
         }
         
+        /////////////////////////////////////////////////////////////
 
+        if (vEvils.size() < 4 + level && RandGen(0, 200) == 66)
+            vEvils.push_back(dll::CreatureFactory(static_cast<types>(RandGen(0, 6)), scr_width + (float)(RandGen(50, 100)),
+                sky + (float)(RandGen(50, 300))));
 
 
 
@@ -1299,7 +1304,104 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 Hero->start.y, Hero->end.x, Hero->end.y));
         }
 
-        
+        if (!vEvils.empty())
+        {
+            for (std::vector<dll::Creature>::iterator evil = vEvils.begin(); evil < vEvils.end(); ++evil)
+            {
+                switch ((*evil)->type)
+                {
+                case types::evil1:
+                    if ((*evil)->dir == dirs::left || (*evil)->dir == dirs::up_left || (*evil)->dir == dirs::down_left)
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil1L[aframe], Resizer(bmpEvil1L[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    else
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil1R[aframe], Resizer(bmpEvil1R[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    break;
+
+                case types::evil2:
+                    if ((*evil)->dir == dirs::left || (*evil)->dir == dirs::up_left || (*evil)->dir == dirs::down_left)
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil2L[aframe], Resizer(bmpEvil2L[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    else
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil2R[aframe], Resizer(bmpEvil2R[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    break;
+
+                case types::evil3:
+                    if ((*evil)->dir == dirs::left || (*evil)->dir == dirs::up_left || (*evil)->dir == dirs::down_left)
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil3L[aframe], Resizer(bmpEvil3L[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    else
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil3R[aframe], Resizer(bmpEvil3R[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    break;
+
+                case types::evil4:
+                    if ((*evil)->dir == dirs::left || (*evil)->dir == dirs::up_left || (*evil)->dir == dirs::down_left)
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil4L[aframe], Resizer(bmpEvil4L[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    else
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil4R[aframe], Resizer(bmpEvil4R[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    break;
+
+                case types::evil5:
+                    if ((*evil)->dir == dirs::left || (*evil)->dir == dirs::up_left || (*evil)->dir == dirs::down_left)
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil5L[aframe], Resizer(bmpEvil5L[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    else
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil5R[aframe], Resizer(bmpEvil5R[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    break;
+
+                case types::evil6:
+                    if ((*evil)->dir == dirs::left || (*evil)->dir == dirs::up_left || (*evil)->dir == dirs::down_left)
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil6L[aframe], Resizer(bmpEvil6L[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    else
+                    {
+                        int aframe = (*evil)->GetFrame();
+                        Draw->DrawBitmap(bmpEvil6R[aframe], Resizer(bmpEvil6R[aframe], (*evil)->start.x, (*evil)->start.y));
+                        break;
+                    }
+                    break;
+                }
+            }
+        }
 
 
 
