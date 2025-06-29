@@ -229,7 +229,6 @@ namespace dll
 
 			float speed = 0.5f;
 
-			float sight_limit{ 0 };
 			int attack_delay{ 0 };
 			int max_attack_delay{ 0 };
 
@@ -246,6 +245,7 @@ namespace dll
 			states state = states::stop;
 			bool jump{ false };
 			int lifes = 0;
+			float sight_limit{ 0 };
 
 			virtual ~CREATURE() {};
 

@@ -146,6 +146,9 @@ dirs assets_dir = dirs::stop;
 dll::Creature Hero{ nullptr };
 std::vector<dll::Creature>vEvils;
 
+std::vector<dll::Creature>vHeroShots;
+std::vector<dll::Creature>vEvilShots;
+
 //////////////////////////////////////////////////////////////
 
 template<typename T> concept CanBeReleased = requires(T check)
@@ -252,6 +255,14 @@ void InitGame()
     if (!vEvils.empty())
         for (int i = 0; i < vEvils.size(); ++i)ClrMem(&vEvils[i]);
     vEvils.clear();
+
+    if (!vEvilShots.empty())
+        for (int i = 0; i < vEvilShots.size(); ++i)ClrMem(&vEvilShots[i]);
+    vEvilShots.clear();
+
+    if (!vHeroShots.empty())
+        for (int i = 0; i < vHeroShots.size(); ++i)ClrMem(&vHeroShots[i]);
+    vHeroShots.clear();
 
     if (Hero)ClrMem(&Hero);
     Hero = dll::CreatureFactory(types::hero, 100.0f, ground);
@@ -1232,10 +1243,69 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         /////////////////////////////////////////////////////////////
 
         if (vEvils.size() < 4 + level && RandGen(0, 200) == 66)
+        {
             vEvils.push_back(dll::CreatureFactory(static_cast<types>(RandGen(0, 6)), scr_width + (float)(RandGen(50, 100)),
                 sky + (float)(RandGen(50, 300))));
+            vEvils.back()->dir = dirs::left;
+        }
 
+        if (!vEvils.empty() && Hero)
+        {
+            for (std::vector<dll::Creature>::iterator ev = vEvils.begin(); ev < vEvils.end(); ++ev)
+            {
+                dll::BAG<dll::FIELD> PlatBag(vPlatforms.size());
 
+                if (!vPlatforms.empty())
+                    for (int i = 0; i < vPlatforms.size(); ++i)PlatBag.push_back(*vPlatforms[i]);
+
+                if ((*ev)->type == types::evil2 || (*ev)->type == types::evil3)
+                {
+                    if ((*ev)->dir == dirs::left && (*ev)->start.x <= -scr_width)(*ev)->dir = dirs::right;
+                    if ((*ev)->dir == dirs::right && (*ev)->end.x >= 2 * scr_width)(*ev)->dir = dirs::left;
+
+                    if (Hero->center.x <= (*ev)->sight_limit && Hero->center.y <= (*ev)->sight_limit)
+                    {
+                        (*ev)->state = states::attack;
+
+                        if ((*ev)->Dispatcher(Hero->center, PlatBag) == states::attack_finished)
+                        {
+                            if (abs(Hero->center.x - (*ev)->center.x) <= Hero->x_radius + (*ev)->x_radius
+                                && abs(Hero->center.y - (*ev)->center.y) <= Hero->y_radius + (*ev)->y_radius)
+                                Hero->lifes -= 40;
+                            else vEvilShots.push_back(dll::CreatureFactory(types::fire, (*ev)->center.x, (*ev)->center.y,
+                                Hero->center.x, Hero->center.y));
+                        }
+                    }
+                    else (*ev)->Move((float)(level));
+                }
+                else
+                {
+                    switch ((*ev)->Dispatcher(Hero->center, PlatBag))
+                    {
+                    case states::move:
+                        (*ev)->Move((float)(level));
+                        if ((*ev)->dir == dirs::left && (*ev)->start.x <= -scr_width)(*ev)->dir = dirs::right;
+                        if ((*ev)->dir == dirs::right && (*ev)->end.x >= 2 * scr_width)(*ev)->dir = dirs::left;
+                        break;
+
+                    case states::fall:
+                        (*ev)->Move((float)(level));
+                        break;
+
+                    case states::stop:
+                        (*ev)->dir = dirs::down;
+                        (*ev)->Move((float)(level));
+                        break;
+
+                    case states::attack_finished:
+                        if (abs(Hero->center.x - (*ev)->center.x) <= Hero->x_radius + (*ev)->x_radius
+                            && abs(Hero->center.y - (*ev)->center.y) <= Hero->y_radius + (*ev)->y_radius)
+                            Hero->lifes -= 20;
+                        break;
+                    }
+                }
+            }
+        }
 
         // DRAW THINGS **********************************************
 
