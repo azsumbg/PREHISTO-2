@@ -527,7 +527,7 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
             if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
             break;
         }
-        switch(LOWORD(wParam))
+        switch(wParam)
         {
         case VK_LEFT:
             Hero->dir = dirs::left;
@@ -544,10 +544,11 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
         case VK_DOWN:
             Hero->dir = dirs::stop;
             break;
+
         }
         break;
 
-
+        
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
     }
 
@@ -1245,7 +1246,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         if (vEvils.size() < 4 + level && RandGen(0, 200) == 66)
         {
             vEvils.push_back(dll::CreatureFactory(static_cast<types>(RandGen(0, 6)), scr_width + (float)(RandGen(50, 100)),
-                sky + (float)(RandGen(50, 300))));
+                sky + (float)(RandGen(150, 300))));
             vEvils.back()->dir = dirs::left;
         }
 
@@ -1263,18 +1264,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                     if ((*ev)->dir == dirs::left && (*ev)->start.x <= -scr_width)(*ev)->dir = dirs::right;
                     if ((*ev)->dir == dirs::right && (*ev)->end.x >= 2 * scr_width)(*ev)->dir = dirs::left;
 
-                    if (Hero->center.x <= (*ev)->sight_limit && Hero->center.y <= (*ev)->sight_limit)
+                    if ((*ev)->Dispatcher(Hero->center, PlatBag) == states::attack_finished)
                     {
-                        (*ev)->state = states::attack;
-
-                        if ((*ev)->Dispatcher(Hero->center, PlatBag) == states::attack_finished)
-                        {
-                            if (abs(Hero->center.x - (*ev)->center.x) <= Hero->x_radius + (*ev)->x_radius
-                                && abs(Hero->center.y - (*ev)->center.y) <= Hero->y_radius + (*ev)->y_radius)
-                                Hero->lifes -= 40;
-                            else vEvilShots.push_back(dll::CreatureFactory(types::fire, (*ev)->center.x, (*ev)->center.y,
-                                Hero->center.x, Hero->center.y));
-                        }
+                        if (abs(Hero->center.x - (*ev)->center.x) <= Hero->x_radius + (*ev)->x_radius
+                            && abs(Hero->center.y - (*ev)->center.y) <= Hero->y_radius + (*ev)->y_radius)
+                            Hero->lifes -= 40;
+                        else vEvilShots.push_back(dll::CreatureFactory(types::fire, (*ev)->center.x, (*ev)->center.y,
+                            Hero->center.x, Hero->center.y));
+                        
+                        (*ev)->state = states::move;
                     }
                     else (*ev)->Move((float)(level));
                 }
@@ -1301,11 +1299,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                         if (abs(Hero->center.x - (*ev)->center.x) <= Hero->x_radius + (*ev)->x_radius
                             && abs(Hero->center.y - (*ev)->center.y) <= Hero->y_radius + (*ev)->y_radius)
                             Hero->lifes -= 20;
+                        (*ev)->state = states::move;
                         break;
+
                     }
                 }
             }
         }
+
+        if (!vEvilShots.empty())
+        {
+            for (std::vector<dll::Creature>::iterator shot = vEvilShots.begin(); shot < vEvilShots.end(); ++shot)
+            {
+                if (!(*shot)->Move((float)(level), 0, 0))
+                {
+                    (*shot)->Release();
+                    vEvilShots.erase(shot);
+                    break;
+                }
+            }
+        }
+
+
 
         // DRAW THINGS **********************************************
 
@@ -1372,6 +1387,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                     Hero->start.y, Hero->end.x, Hero->end.y));
             else Draw->DrawBitmap(bmpHeroL[Hero->GetFrame()], D2D1::RectF(Hero->start.x,
                 Hero->start.y, Hero->end.x, Hero->end.y));
+
+            if (hgltBrush)
+                Draw->DrawLine(D2D1::Point2F(Hero->start.x, Hero->end.y + 5.0f),
+                    D2D1::Point2F(Hero->start.x + (float)(Hero->lifes / 2), Hero->end.y + 5.0f), hgltBrush, 5.0f);
         }
 
         if (!vEvils.empty())
@@ -1473,9 +1492,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
         }
 
-
-
-
+        if (!vEvilShots.empty())
+        {
+            for (int i = 0; i < vEvilShots.size(); ++i)
+                Draw->DrawBitmap(bmpFireball[vEvilShots[i]->GetFrame()], D2D1::RectF(vEvilShots[i]->start.x,
+                    vEvilShots[i]->start.y, vEvilShots[i]->end.x, vEvilShots[i]->end.y));
+        }
 
         //////////////////////////////////////////////////////////////
 
