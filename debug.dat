@@ -1,0 +1,21 @@
+FIELD x: 1013.2, FIELD y: 645, FIELD x_raiuds: 60, FIELD y_radius: 31, this->x: 46.6958, this-> y: 444, this->x_radius: 45, this-> y_radius: 46
+
+FIELD x: 1049, FIELD y: 653, FIELD x_raiuds: 55, FIELD y_radius: 45, this->x: 46.6958, this-> y: 444, this->x_radius: 45, this-> y_radius: 46
+
+FIELD x: 603.995, FIELD y: 645, FIELD x_raiuds: 60, FIELD y_radius: 31, this->x: 624.698, this-> y: 444, this->x_radius: 45, this-> y_radius: 46
+
+FIELD x: 639.796, FIELD y: 653, FIELD x_raiuds: 55, FIELD y_radius: 45, this->x: 624.698, this-> y: 444, this->x_radius: 45, this-> y_radius: 46
+
+FIELD x: 720.197, FIELD y: 665, FIELD x_raiuds: 55, FIELD y_radius: 45, this->x: 624.698, this-> y: 444, this->x_radius: 45, this-> y_radius: 46
+
+std::wofstream deb(L".\\res\\data\\debug.dat");
+
+std::wofstream deb(L".\\res\\data\\debug.dat", std::ios::app);
+deb << L"FIELD x: " << what.center.x << L", FIELD y: " << what.center.y
+	<< L", FIELD x_raiuds: " << what.x_radius << L", FIELD y_radius: " << what.y_radius
+	<< L", this->x: " << center.x << L", this-> y: " << center.y
+	<< L", this->x_radius: " << x_radius << L", this-> y_radius: " << y_radius
+	<< L" , x diff: " << abs(what.center.x - center.x) << L" , y diff: " << abs(what.center.y - center.y)
+	<< std::endl << std::endl;
+
+deb.close();	

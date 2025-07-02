@@ -68,7 +68,8 @@ namespace dll
 			}
 			bool empty() const
 			{
-				return !(next_pos > 0);
+				if (next_pos > 0)return false;
+				return true;
 			}
 
 			void push_back(T element)
@@ -255,6 +256,13 @@ namespace dll
 
 			void Move(float gear);
 			bool Move(float gear, float targ_x, float targ_y);
+
+			void ResetJump()
+			{
+				jump = false;
+				jump_start = false;
+				jump_up = false;
+			}
 
 			states Dispatcher(FPOINT hero_point, BAG<FIELD>& objects);
 

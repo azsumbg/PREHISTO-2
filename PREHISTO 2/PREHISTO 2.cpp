@@ -1040,7 +1040,7 @@ void CreateResources()
                 scr_width, up_txt_y_pos + 50.0f), txtBrush);
             if (!up_ok)
             {
-                ++up_txt_y_pos;
+                up_txt_y_pos += 2.5f;
                 if (up_let_count + 1 < 13)++up_let_count;
                 if (up_txt_y_pos >= scr_height / 2 - 100.0f && !up_ok)
                 {
@@ -1053,7 +1053,7 @@ void CreateResources()
             {
                 Draw->DrawTextW(down_txt, down_let_count, bigText, D2D1::RectF(300.0f, down_txt_y_pos, scr_width, down_txt_y_pos
                     + 50.0f), txtBrush);
-                --down_txt_y_pos;
+                down_txt_y_pos -= 2.5f;
                 if (down_let_count + 1 < 14)++down_let_count;
                 if (down_txt_y_pos <= scr_height / 2 + 100.0f && !down_ok)
                 {
@@ -1149,7 +1149,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 break;
             }
 
-            if (Hero->dir != dirs::stop)Hero->Move((float)(level));
+            if (Hero->state == states::move || Hero->jump)Hero->Move((float)(level));
         }
 
         if (!vFields.empty() && assets_dir != dirs::stop)
@@ -1173,7 +1173,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
         if (vPlatforms.size() < 3 && RandGen(0, 500) == 66)
             vPlatforms.push_back(dll::FieldFactory(static_cast<assets>(RandGen(0, 2)), scr_width + (float)(RandGen(160, 250)),
-                ground - (float)(RandGen(50, 100))));
+                ground - (float)(RandGen(0, 50))));
         
         if (!vPlatforms.empty() && assets_dir != dirs::stop)
         {
@@ -1192,18 +1192,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         {
             if (!Hero->jump)
             {
-                Hero->state = states::fall;
+                if (Hero->state != states::stop)Hero->state = states::fall;
 
-                if (Hero->start.y >= ground)
-                {
-                    Hero->state = states::move;
-                    if (Hero->start.y > ground)
-                    {
-                        Hero->start.y = ground;
-                        Hero->SetEdges();
-                    }
-                }
-                else if (!vPlatforms.empty())
+                if(!vPlatforms.empty())
                 {
                     for (std::vector<dll::Asset>::iterator pl = vPlatforms.begin(); pl < vPlatforms.end(); ++pl)
                     {
@@ -1211,8 +1202,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                             && (abs(Hero->center.y - (*pl)->center.y) <= Hero->y_radius + (*pl)->y_radius))
                         {
                             Hero->state = states::move;
-                            Hero->start.y = (*pl)->start.y - Hero->GetHeight();
-                            Hero->SetEdges();
                             break;
                         }
                     }
@@ -1222,6 +1211,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 {
                     Hero->start.y += (float)(level);
                     Hero->SetEdges();
+                    if (Hero->start.y >= ground)
+                    {
+                        Hero->state = states::move;
+                        if (Hero->start.y > ground)
+                        {
+                            Hero->start.y = ground;
+                            Hero->SetEdges();
+                        }
+                    }
                 }
             }
             else if (!vPlatforms.empty())
@@ -1232,11 +1230,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                         && (abs(Hero->center.y - (*pl)->center.y) <= Hero->y_radius + (*pl)->y_radius))
                     {
                         Hero->state = states::move;
-                        Hero->start.y = (*pl)->start.y - Hero->GetHeight();
-                        Hero->SetEdges();
-                        Hero->jump = false;
+                        if (Hero->center.y >= (*pl)->start.y)
+                        {
+                            Hero->start.y = (*pl)->start.y - Hero->GetHeight();
+                            Hero->SetEdges();
+                            Hero->ResetJump();
+                        }
                         break;
                     }
+               
                 }
             }
         }
@@ -1258,7 +1260,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
                 if (!vPlatforms.empty())
                     for (int i = 0; i < vPlatforms.size(); ++i)PlatBag.push_back(*vPlatforms[i]);
-
+                
                 if ((*ev)->type == types::evil2 || (*ev)->type == types::evil3)
                 {
                     if ((*ev)->dir == dirs::left && (*ev)->start.x <= -scr_width)(*ev)->dir = dirs::right;
@@ -1319,8 +1321,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 }
             }
         }
-
-
 
         // DRAW THINGS **********************************************
 
