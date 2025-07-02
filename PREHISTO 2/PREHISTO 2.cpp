@@ -524,6 +524,7 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
         if (!Hero)break;
         if (Hero->jump)
         {
+            
             if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
             break;
         }
@@ -531,18 +532,22 @@ LRESULT CALLBACK bWinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPa
         {
         case VK_LEFT:
             Hero->dir = dirs::left;
+            Hero->state = states::move;
             break;
 
         case VK_RIGHT:
             Hero->dir = dirs::right;
+            Hero->state = states::move;
             break;
 
         case VK_UP:
             Hero->jump = true;
+            Hero->state = states::move;
             break;
 
         case VK_DOWN:
             Hero->dir = dirs::stop;
+            Hero->state = states::stop;
             break;
 
         }
