@@ -1289,8 +1289,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                     {
                     case states::move:
                         (*ev)->Move((float)(level));
-                        if ((*ev)->dir == dirs::left && (*ev)->start.x <= -scr_width)(*ev)->dir = dirs::right;
-                        if ((*ev)->dir == dirs::right && (*ev)->end.x >= 2 * scr_width)(*ev)->dir = dirs::left;
                         break;
 
                     case states::fall:
@@ -1298,7 +1296,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                         break;
 
                     case states::stop:
-                        (*ev)->dir = dirs::down;
+                        (*ev)->dir = dirs::stop;
                         (*ev)->Move((float)(level));
                         break;
 
@@ -1313,7 +1311,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 }
             }
         }
-
+      
         if (!vEvilShots.empty())
         {
             for (std::vector<dll::Creature>::iterator shot = vEvilShots.begin(); shot < vEvilShots.end(); ++shot)
